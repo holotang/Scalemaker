@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonata Composer Studio [Note-Link Edition]</title>
+    <title>Sonata Composer Studio [Theoretical Version]</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 0; line-height: 1.6; }
         header { background: #1a1a1a; color: white; padding: 1rem; text-align: center; }
@@ -16,13 +16,13 @@
         .project-manager { display: flex; gap: 10px; align-items: center; background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
         .project-btn { background: #555; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; font-size: 0.8rem; }
         
-        /* 楽曲構成（最上段） */
+        /* 楽曲構成プランナー */
         .timeline-header { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; padding: 10px; font-weight: bold; font-size: 0.8rem; border-bottom: 2px solid #eee; }
         .timeline-item { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
         .timeline-item input, .timeline-item select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.9rem; width: 100%; }
         .total-info { background: #e63946; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; display: inline-block; margin-top: 10px; }
         
-        /* 音名セレクター（8枠） */
+        /* 音名セレクター */
         .converter-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
         .converter-input label { display: block; font-size: 0.7rem; color: #666; text-align: center; margin-bottom: 5px; }
         .converter-input select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-size: 1rem; cursor: pointer; }
@@ -33,11 +33,9 @@
         td { padding: 8px 10px; border-bottom: 1px solid #eee; }
         .notes-text { font-family: 'Courier New', monospace; font-weight: bold; font-size: 1rem; }
         
-        /* 色分け */
         .in-scale { color: #2a9d8f; } 
         .out-scale { color: #f4a261; font-weight: normal; opacity: 0.7; } 
         .chord-notes { color: #e63946; } 
-        
         .add-btn { background: #2a9d8f; color: white; padding: 8px 15px; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:10px; }
         .del-btn { background: #ccc; color: white; border:none; border-radius:4px; cursor:pointer; height: 30px; }
     </style>
@@ -67,13 +65,13 @@
     </div>
 
     <div class="section-box">
-        <h2>メロディ変換 (C基準 音名入力 → 各旋法へ移調)</h2>
+        <h2>メロディ変換 (理論的度数反映: E=3, F=4)</h2>
         <div class="converter-grid" id="inputGrid"></div>
-        <p style="font-size: 0.75rem; color: #666;">※Cメジャースケール内の音を基準に選びます。緑＝スケール内、オレンジ＝外。</p>
+        <p style="font-size: 0.75rem; color: #666;">※Cメジャースケールを基準にします。琉球音階の場合、E(3音目)・F(4音目)として正しく変換されます。</p>
     </div>
 
     <div class="section-box">
-        <h2>スケール・リファレンス (全旋法リスト)</h2>
+        <h2>スケール・リファレンス (全31旋法)</h2>
         <div style="margin-bottom:15px; display:flex; gap:20px; align-items:center;">
             <label>Root Key: <select id="keySelect" onchange="update()"></select></label>
         </div>
@@ -84,7 +82,7 @@
                     <th>変換メロディ</th>
                     <th>音階順 (Scale)</th>
                     <th>3度順 (Chord)</th>
-                    <th>イメージ</th>
+                    <th>地域/イメージ</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -96,36 +94,32 @@
     const notesSharp = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const notesFlat  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
     const majorScaleNotes = ["C", "D", "E", "F", "G", "A", "B", "C(oct)"];
-    const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11, 12];
     
-    function n(name) { const idx = notesFlat.indexOf(name); return idx !== -1 ? idx : notesSharp.indexOf(name); }
-
+    // スケール定義（インデックス指定による理論的厳密化）
+    // 琉球音階 [0=C, 4=E, 5=F, 7=G, 11=B] = 度数 1, 3, 4, 5, 7
     const scales = [
-        { id: "ryukyu", name: "琉球音階", notes: ["C", "E", "F", "G", "B"], img: "太陽", pref: "sharp" },
-        { id: "ritsu", name: "律旋法", notes: ["C", "D", "F", "G", "A"], img: "雅楽", pref: "sharp" },
-        { id: "in", name: "陰旋法", notes: ["C", "Db", "F", "G", "Ab"], img: "都節", pref: "flat" },
-        { id: "china", name: "中国音階", notes: ["C", "D", "F", "G", "A"], img: "悠久", pref: "sharp" },
-        { id: "persia", name: "ペルシャ", notes: ["C", "Db", "E", "G", "Ab"], img: "中東", pref: "flat" },
-        { id: "whole", name: "全音音階", notes: ["C", "D", "E", "Gb", "Ab", "Bb"], img: "夢幻", pref: "sharp" },
-        { id: "mystic", name: "神秘音階", notes: ["C", "D", "E", "Gb", "A", "Bb"], img: "法悦", pref: "sharp" },
-        { id: "ionian", name: "アイオニアン", notes: ["C", "D", "E", "F", "G", "A", "B"], img: "長音階", pref: "sharp" },
-        { id: "lydian", name: "リディアン", notes: ["C", "D", "E", "F#", "G", "A", "B"], img: "浮遊感", pref: "sharp" },
-        { id: "mixo", name: "ミクソリディアン", notes: ["C", "D", "E", "F", "G", "A", "Bb"], img: "祝祭", pref: "flat" },
-        { id: "dorian", name: "ドリアン", notes: ["C", "D", "Eb", "F", "G", "A", "Bb"], img: "気高い", pref: "flat" },
-        { id: "phrygian", name: "フリジアン", notes: ["C", "Db", "Eb", "F", "G", "Ab", "Bb"], img: "宿命", pref: "flat" },
-        { id: "phrygian_dom", name: "フリジアンDom", notes: ["C", "Db", "E", "F", "G", "Ab", "Bb"], img: "威圧", pref: "flat" },
-        { id: "hungary", name: "ハンガリー短", notes: ["C", "D", "Eb", "F#", "G", "Ab", "B"], img: "狂気", pref: "sharp" },
-        { id: "dim_hw", name: "半全ディミニッシュ", notes: ["C", "Db", "Eb", "E", "Gb", "G", "A", "Bb"], img: "メシアン2", pref: "flat" },
-        { id: "dim_wh", name: "全半ディミニッシュ", notes: ["C", "D", "Eb", "F", "Gb", "Ab", "A", "B"], img: "硬質", pref: "sharp" },
-        { id: "messiaen3", name: "メシアン第3", notes: ["C", "D", "Eb", "E", "F#", "G", "Ab", "Bb", "B"], img: "色彩", pref: "sharp" },
-        { id: "messiaen7", name: "メシアン第7", notes: ["C", "Db", "D", "Eb", "F", "Gb", "G", "Ab", "A", "B"], img: "カオス", pref: "sharp" },
-        { id: "spiral", name: "螺旋音階", notes: ["C", "D", "E", "Gb", "Ab", "Bb", "C#", "D#", "F", "G", "A", "B"], img: "無限", pref: "sharp" }
+        { id: "ryukyu", name: "琉球音階", intervals: [0, null, 4, 5, 7, null, 11], img: "沖縄/太陽", pref: "sharp" },
+        { id: "ritsu", name: "律旋法", intervals: [0, 2, null, 5, 7, 9, null], img: "雅楽", pref: "sharp" },
+        { id: "in", name: "陰旋法", intervals: [0, 1, null, 5, 7, 8, null], img: "都節", pref: "flat" },
+        { id: "china", name: "中国音階", intervals: [0, 2, 4, null, 7, 9, null], img: "中国/悠久", pref: "sharp" },
+        { id: "whole", name: "全音音階", intervals: [0, 2, 4, 6, 8, 10, null], img: "仏/夢幻", pref: "sharp" },
+        { id: "mystic", name: "神秘音階", intervals: [0, 2, 4, 6, 9, 10, null], img: "露/法悦", pref: "sharp" },
+        { id: "ionian", name: "アイオニアン", intervals: [0, 2, 4, 5, 7, 9, 11], img: "長音階", pref: "sharp" },
+        { id: "lydian", name: "リディアン", intervals: [0, 2, 4, 6, 7, 9, 11], img: "欧州/浮遊", pref: "sharp" },
+        { id: "mixo", name: "ミクソリディアン", intervals: [0, 2, 4, 5, 7, 9, 10], img: "祝祭", pref: "flat" },
+        { id: "dorian", name: "ドリアン", intervals: [0, 2, 3, 5, 7, 9, 10], img: "気高い", pref: "flat" },
+        { id: "phrygian", name: "フリジアン", intervals: [0, 1, 3, 5, 7, 8, 10], img: "宿命", pref: "flat" },
+        { id: "phrygian_dom", name: "フリジアンDom", intervals: [0, 1, 4, 5, 7, 8, 10], img: "エジプト", pref: "flat" },
+        { id: "dim_hw", name: "半全ディミ", intervals: [0, 1, 3, 4, 6, 7, 9, 10], img: "メシアン2", pref: "flat" },
+        { id: "dim_wh", name: "全半ディミ", intervals: [0, 2, 3, 5, 6, 8, 9, 11], img: "現代/硬質", pref: "sharp" },
+        { id: "messiaen3", name: "メシアン第3", intervals: [0, 2, 3, 4, 6, 7, 8, 10, 11], img: "色彩", pref: "sharp" },
+        { id: "messiaen7", name: "メシアン第7", intervals: [0, 1, 2, 3, 5, 6, 7, 8, 9, 11], img: "カオス", pref: "sharp" },
+        { id: "spiral", name: "螺旋音階", intervals: [0, 2, 4, 6, 8, 10, 13, 15, 17, 19, 21, 23], img: "無限", pref: "sharp" }
     ];
 
     let currentProjectName = "My Sonata";
     let allProjects = { "My Sonata": [] };
 
-    // 音名セレクター生成 (C Majorベース)
     const inputGrid = document.getElementById('inputGrid');
     for(let i=1; i<=8; i++) {
         inputGrid.innerHTML += `<div class="converter-input"><label>${i}音目</label><select class="deg-in" onchange="update()"><option value="-1">-</option>${majorScaleNotes.map((name,idx)=>`<option value="${idx}">${name}</option>`).join('')}</select></div>`;
@@ -150,8 +144,8 @@
             data.push({ bars: item.querySelector('.input-bars').value, bpm: item.querySelector('.input-bpm').value, secName: item.querySelector('.input-sec').value, scale: item.querySelector('.select-scale').value, memo: item.querySelector('.input-memo').value });
         });
         allProjects[currentProjectName] = data;
-        localStorage.setItem('sonataCompleteV1', JSON.stringify(allProjects));
-        localStorage.setItem('lastProjV1', currentProjectName);
+        localStorage.setItem('sonataCompleteV2', JSON.stringify(allProjects));
+        localStorage.setItem('lastProjV2', currentProjectName);
         document.getElementById('saveStatus').innerText = "保存済み " + new Date().toLocaleTimeString();
     }
 
@@ -189,19 +183,24 @@
 
         scales.forEach(s => {
             const noteList = (s.pref === "flat") || (isFlat && s.pref !== "sharp") ? notesFlat : notesSharp;
-            const intervals = s.notes.map(name => n(name));
-            
-            // 変換メロディ
+            const validIntervals = s.intervals.filter(v => v !== null);
+
+            // 変換メロディ (度数ベースの厳密なマッピング)
             const convertedHTML = degInputs.filter(v => v !== -1).map(v => {
-                const baseInterval = majorScaleIntervals[v]; // 0=C, 2=D, 4=E...
-                const noteIdx = intervals[v % intervals.length];
-                const noteName = noteList[(noteIdx + shift) % 12];
-                const isInScale = intervals.includes(baseInterval % 12);
-                return `<span class="${isInScale ? 'in-scale' : 'out-scale'}">${noteName}</span>`;
+                const targetInterval = s.intervals[v % s.intervals.length];
+                if (targetInterval === null) {
+                    // スケール外の音（メジャーの度数にはあるが、その旋法にはない音）
+                    const chromatic = [0, 2, 4, 5, 7, 9, 11][v % 7];
+                    return `<span class="out-scale">${noteList[(chromatic + shift) % 12]}</span>`;
+                }
+                const noteName = noteList[(targetInterval + shift) % 12];
+                return `<span class="in-scale">${noteName}</span>`;
             }).join(" ");
 
-            const scaleNotes = intervals.map(i => noteList[(i + shift) % 12]).join(" ");
-            let tertial = []; let temp = [...intervals]; let i = 0;
+            const scaleNotes = validIntervals.map(i => noteList[(i + shift) % 12]).join(" ");
+            
+            // 3度構成順
+            let tertial = []; let temp = [...validIntervals]; let i = 0;
             while (temp.length > 0) { tertial.push(temp[i]); temp.splice(i, 1); if (temp.length > 0) i = (i + 1) % temp.length; }
             const chordNotes = tertial.map(i => noteList[(i + shift) % 12]).join(" ");
 
@@ -223,7 +222,7 @@
     }
 
     window.onload = () => {
-        const saved = localStorage.getItem('sonataCompleteV1');
+        const saved = localStorage.getItem('sonataCompleteV2');
         const last = localStorage.getItem('lastProjV1');
         if (saved) { allProjects = JSON.parse(saved); if (last) currentProjectName = last; }
         renderProjectList(); switchProject(); update();
