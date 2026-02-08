@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Scale Matrix</title>
+    <style>
+        /* ここに styles.css の中身をまるごとコピーして貼り付け */
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        .notes { font-weight: bold; color: #d32f2f; }
+    </style>
+</head>
+<body>
+    <h1>🎼 Scale Matrix</h1>
+    <select id="keySelect" onchange="update()"></select>
+    <table border="1">
+        <thead>
+            <tr><th>音数</th><th>名</th><th>構成音</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        // ここに script.js の中身をまるごとコピーして貼り付け
+        const noteNames = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        const scales = [
+            { n: 5, name: "琉球音階", intervals: [0, 4, 5, 7, 11] },
+            { n: 7, name: "リディアン", intervals: [0, 2, 4, 6, 7, 9, 11] }
+            // ... 他のスケールも
+        ];
+        
+        const keySelect = document.getElementById('keySelect');
+        noteNames.forEach((n, i) => {
+            const opt = document.createElement('option');
+            opt.value = i; opt.textContent = n;
+            keySelect.appendChild(opt);
+        });
+
+        function update() {
+            const shift = parseInt(keySelect.value);
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = "";
+            scales.forEach(s => {
+                const notes = s.intervals.map(i => noteNames[(i + shift) % 12]).join(" ");
+                tbody.innerHTML += `<tr><td>${s.n}</td><td>${s.name}</td><td class="notes">${notes}</td></tr>`;
+            });
+        }
+        update();
+    </script>
+</body>
+</html>
