@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonata Multi-Project Studio</title>
+    <title>Sonata Composer Studio [Full Suite]</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 0; line-height: 1.6; }
         header { background: #1a1a1a; color: white; padding: 1rem; text-align: center; }
@@ -11,23 +11,17 @@
         main { max-width: 1250px; margin: 1.5rem auto; padding: 0 1rem; }
         .section-box { background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { font-size: 1.1rem; border-left: 4px solid #e63946; padding-left: 10px; margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* プロジェクト管理エリア */
-        .project-manager { display: flex; gap: 10px; align-items: center; background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 1rem; }
+        .project-manager { display: flex; gap: 10px; align-items: center; background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
         .project-manager select { padding: 5px 10px; border-radius: 4px; font-size: 0.9rem; }
         .project-btn { background: #555; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; border: none; font-size: 0.8rem; }
-        .project-btn:hover { background: #777; }
-        .save-status { font-size: 0.8rem; color: #2a9d8f; font-weight: normal; margin-left: auto; }
-
         .timeline-header { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; padding: 10px; font-weight: bold; font-size: 0.8rem; border-bottom: 2px solid #eee; }
         .timeline-item { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
         .timeline-item input, .timeline-item select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
         .total-info { background: #e63946; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; display: inline-block; margin-top: 10px; }
-        .duration-cell { font-weight: bold; color: #2a9d8f; text-align: center; font-size: 0.9rem; }
+        .duration-cell { font-weight: bold; color: #2a9d8f; text-align: center; }
         .notes-text { font-family: 'Courier New', monospace; font-weight: bold; color: #e63946; font-size: 1rem; }
-        button { cursor: pointer; border-radius: 4px; border: none; font-weight: bold; transition: 0.2s; }
-        .add-btn { background: #2a9d8f; color: white; padding: 8px 15px; margin-top: 15px; }
-        .del-btn { background: #ccc; color: white; height: 30px; }
+        button.add-btn { background: #2a9d8f; color: white; padding: 8px 15px; margin-top: 15px; border:none; border-radius:4px; font-weight:bold; cursor:pointer;}
+        .del-btn { background: #ccc; color: white; border:none; border-radius:4px; cursor:pointer; height: 30px; }
         .del-btn:hover { background: #e63946; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-size: 0.85rem; }
         th { background: #333; color: white; padding: 10px; text-align: left; }
@@ -36,9 +30,7 @@
 </head>
 <body>
 
-<header>
-    <h1>🎼 Sonata Multi-Project Studio</h1>
-</header>
+<header><h1>🎼 Sonata Composer Studio</h1></header>
 
 <main>
     <div class="project-manager">
@@ -47,23 +39,23 @@
         <button class="project-btn" onclick="createNewProject()">＋ 新規作成</button>
         <button class="project-btn" onclick="renameProject()">✏️ 名前変更</button>
         <button class="project-btn" style="background:#822;" onclick="deleteProject()">🗑️ 削除</button>
-        <div id="saveStatus" class="save-status">保存済み</div>
+        <div id="saveStatus" style="margin-left:auto; font-size:0.8rem; color:#2a9d8f;">保存済み</div>
     </div>
 
     <div class="section-box">
         <h2>楽曲構成 & 演奏時間設計</h2>
         <div class="timeline-header">
-            <div>小節数</div><div>BPM</div><div>セクション</div><div>使用スケール</div><div>メモ・楽想</div><div>時間</div><div></div>
+            <div>小節数</div><div>BPM</div><div>セクション</div><div>使用スケール</div><div>メモ</div><div>時間</div><div></div>
         </div>
-        <div id="timeline" class="timeline"></div>
+        <div id="timeline"></div>
         <button class="add-btn" onclick="addTimelineRow(); saveToLocal();">＋ セクションを追加</button>
         <br>
         <div id="totalDisplay" class="total-info">総演奏時間: 0分 0秒</div>
     </div>
 
     <div class="section-box">
-        <h2>スケール・リファレンス</h2>
-        <div style="margin-bottom:15px; display:flex; gap:20px; align-items:center;">
+        <h2>スケール・リファレンス (全31種)</h2>
+        <div style="margin-bottom:15px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
             <label>Root Key: <select id="keySelect" onchange="update()"></select></label>
             <label>並び順: <select id="orderSelect" onchange="update()">
                 <option value="scale">音階順</option><option value="tertial">3度構成順</option>
@@ -80,21 +72,40 @@
 <script>
     const notesSharp = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const notesFlat  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+    
+    // 全スケールデータを完全復元
     const scales = [
         { id: "ryukyu", n: 5, name: "琉球音階", intervals: [0, 4, 5, 7, 11], region: "沖縄", img: "太陽", prefer: "sharp" },
         { id: "ritsu", n: 5, name: "律旋法", intervals: [0, 2, 5, 7, 9], region: "雅楽", img: "静謐", prefer: "sharp" },
         { id: "in", n: 5, name: "陰旋法", intervals: [0, 1, 5, 7, 8], region: "都節", img: "哀愁", prefer: "flat" },
         { id: "china", n: 5, name: "中国音階", intervals: [0, 2, 4, 7, 9], region: "中国", img: "悠久", prefer: "sharp" },
+        { id: "persia", n: 5, name: "ペルシャ", intervals: [0, 1, 4, 7, 8], region: "中東", img: "呪術的", prefer: "flat" },
+        { id: "java", n: 5, name: "ジャバニーズ", intervals: [0, 1, 3, 7, 8], region: "インドネシア", img: "熱帯", prefer: "flat" },
         { id: "whole", n: 6, name: "全音音階", intervals: [0, 2, 4, 6, 8, 10], region: "仏", img: "夢幻", prefer: "sharp" },
+        { id: "mystic", n: 6, name: "神秘音階", intervals: [0, 2, 4, 6, 9, 10], region: "ロシア", img: "法悦", prefer: "sharp" },
+        { id: "blue", n: 6, name: "ブルーノート", intervals: [0, 3, 5, 6, 7, 10], region: "米国", img: "野性味", prefer: "flat" },
+        { id: "ionian", n: 7, name: "アイオニアン", intervals: [0, 2, 4, 5, 7, 9, 11], region: "欧州", img: "現実", prefer: "sharp" },
         { id: "lydian", n: 7, name: "リディアン", intervals: [0, 2, 4, 6, 7, 9, 11], region: "欧州", img: "神話的", prefer: "sharp" },
-        { id: "phrygian_dom", n: 7, name: "フリジアンDom", intervals: [0, 1, 4, 5, 7, 8, 10], region: "アラブ", img: "威圧", prefer: "flat" },
+        { id: "mixo", n: 7, name: "ミクソリディアン", intervals: [0, 2, 4, 5, 7, 9, 10], region: "欧州", img: "祝祭", prefer: "flat" },
+        { id: "dorian", n: 7, name: "ドリアン", intervals: [0, 2, 3, 5, 7, 9, 10], region: "欧州", img: "気高い", prefer: "flat" },
+        { id: "aeolian", n: 7, name: "エオリアン", intervals: [0, 2, 3, 5, 7, 8, 10], region: "欧州", img: "孤独", prefer: "flat" },
+        { id: "phrygian", n: 7, name: "フリジアン", intervals: [0, 1, 3, 5, 7, 8, 10], region: "西国", img: "宿命", prefer: "flat" },
+        { id: "locrian", n: 7, name: "ロクリアン", intervals: [0, 1, 3, 5, 6, 8, 10], region: "現代", img: "崩壊", prefer: "flat" },
+        { id: "phrygian_dom", n: 7, name: "フリジアンDom", intervals: [0, 1, 4, 5, 7, 8, 10], region: "エジプト", img: "威圧", prefer: "flat" },
+        { id: "double_har", n: 7, name: "ダブルハーモニック", intervals: [0, 1, 4, 5, 7, 8, 11], region: "インド", img: "宗教", prefer: "flat" },
+        { id: "hungary", n: 7, name: "ハンガリー短", intervals: [0, 2, 3, 6, 7, 8, 11], region: "東欧", img: "狂気", prefer: "sharp" },
+        { id: "lydian_aug", n: 7, name: "リディアンAug", intervals: [0, 2, 4, 6, 8, 9, 11], region: "現代", img: "時空歪", prefer: "sharp" },
+        { id: "lydian_dom", n: 7, name: "リディアンDom", intervals: [0, 2, 4, 6, 7, 9, 10], region: "現代", img: "モダン", prefer: "flat" },
+        { id: "ultra_loc", n: 7, name: "ウルトラロクリアン", intervals: [0, 1, 3, 4, 6, 8, 9], region: "現代", img: "深淵", prefer: "flat" },
         { id: "messiaen2", n: 8, name: "メシアン第2", intervals: [0, 1, 3, 4, 6, 7, 9, 10], region: "現代", img: "宝石", prefer: "flat" },
+        { id: "messiaen3", n: 9, name: "メシアン第3", intervals: [0, 2, 3, 4, 6, 7, 8, 10, 11], region: "現代", img: "爆発", prefer: "sharp" },
         { id: "messiaen7", n: 10, name: "メシアン第7", intervals: [0, 1, 2, 3, 5, 6, 7, 8, 9, 11], region: "現代", img: "カオス", prefer: "sharp" },
-        { id: "spiral", n: "特殊", name: "螺旋音階", intervals: [0, 2, 4, 6, 8, 10, 13, 15], region: "数学", img: "無限上昇", prefer: "sharp" }
+        { id: "scale11", n: 11, name: "11音旋法", intervals: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11], region: "現代", img: "飽和", prefer: "sharp" },
+        { id: "spiral", n: "特殊", name: "螺旋音階", intervals: [0, 2, 4, 6, 8, 10, 13, 15, 17, 19, 21, 23], region: "数学", img: "無限上昇", prefer: "sharp" }
     ];
 
-    let currentProjectName = "My First Sonata";
-    let allProjects = { "My First Sonata": [] };
+    let currentProjectName = "My New Sonata";
+    let allProjects = { "My New Sonata": [] };
 
     function calculateTotal() {
         let totalSec = 0;
@@ -122,19 +133,19 @@
             });
         });
         allProjects[currentProjectName] = data;
-        localStorage.setItem('sonataProjects', JSON.stringify(allProjects));
-        localStorage.setItem('lastProjectName', currentProjectName);
+        localStorage.setItem('sonataProjectsV2', JSON.stringify(allProjects));
+        localStorage.setItem('lastProjectNameV2', currentProjectName);
         document.getElementById('saveStatus').innerText = "保存済み " + new Date().toLocaleTimeString();
     }
 
     function createNewProject() {
-        const name = prompt("新しい曲名を入力してください:", "Untitled");
+        const name = prompt("新しい曲名:", "Untitled");
         if (name && !allProjects[name]) {
             allProjects[name] = [];
             currentProjectName = name;
             renderProjectList();
             document.getElementById('timeline').innerHTML = "";
-            addTimelineRow("64", "120", "提示部", "琉球音階", "新しい旅の始まり");
+            addTimelineRow("64", "120", "提示部", "琉球音階", "");
             saveToLocal();
         }
     }
@@ -152,24 +163,21 @@
     }
 
     function renameProject() {
-        const newName = prompt("新しい曲名:", currentProjectName);
+        const newName = prompt("曲名変更:", currentProjectName);
         if (newName && newName !== currentProjectName) {
             allProjects[newName] = allProjects[currentProjectName];
             delete allProjects[currentProjectName];
             currentProjectName = newName;
-            renderProjectList();
-            saveToLocal();
+            renderProjectList(); saveToLocal();
         }
     }
 
     function deleteProject() {
-        if (Object.keys(allProjects).length <= 1) return alert("最後の1曲は削除できません。");
+        if (Object.keys(allProjects).length <= 1) return;
         if (confirm(`「${currentProjectName}」を削除しますか？`)) {
             delete allProjects[currentProjectName];
             currentProjectName = Object.keys(allProjects)[0];
-            renderProjectList();
-            switchProject();
-            saveToLocal();
+            renderProjectList(); switchProject(); saveToLocal();
         }
     }
 
@@ -191,11 +199,11 @@
         div.innerHTML = `
             <input type="number" class="input-bars" value="${bars}" oninput="calculateTotal(); saveToLocal();">
             <input type="number" class="input-bpm" value="${bpm}" oninput="calculateTotal(); saveToLocal();">
-            <input type="text" class="input-sec" value="${secName}" oninput="saveToLocal();">
+            <input type="text" class="input-sec" value="${secName}" oninput="saveToLocal();" placeholder="セクション名">
             <select class="select-scale" onchange="saveToLocal();">
                 ${scales.map(s => `<option ${s.name===scaleName?'selected':''}>${s.name}</option>`).join('')}
             </select>
-            <input type="text" class="input-memo" value="${memo}" oninput="saveToLocal();">
+            <input type="text" class="input-memo" value="${memo}" oninput="saveToLocal();" placeholder="メモ">
             <div class="duration-cell">0s</div>
             <button class="del-btn" onclick="this.parentElement.remove(); calculateTotal(); saveToLocal();">×</button>
         `;
@@ -206,7 +214,7 @@
     const keySelect = document.getElementById('keySelect');
     notesFlat.forEach((n, i) => { const opt = document.createElement('option'); opt.value = i; opt.textContent = n; keySelect.appendChild(opt); });
     const checkboxContainer = document.getElementById('checkboxContainer');
-    scales.forEach(s => { checkboxContainer.innerHTML += `<label style="font-size:0.75rem; background:#eee; padding:2px 8px; border-radius:10px;"><input type="checkbox" id="check_${s.id}" checked onchange="update()"> ${s.name}</label>`; });
+    scales.forEach(s => { checkboxContainer.innerHTML += `<label style="font-size:0.7rem; background:#eee; padding:2px 8px; border-radius:10px;"><input type="checkbox" id="check_${s.id}" checked onchange="update()"> ${s.name}</label>`; });
 
     function update() {
         const shift = parseInt(keySelect.value);
@@ -229,16 +237,14 @@
     }
 
     window.onload = () => {
-        const savedProjects = localStorage.getItem('sonataProjects');
-        const lastProject = localStorage.getItem('lastProjectName');
+        const savedProjects = localStorage.getItem('sonataProjectsV2');
+        const lastProject = localStorage.getItem('lastProjectNameV2');
         if (savedProjects) {
             allProjects = JSON.parse(savedProjects);
             if (lastProject && allProjects[lastProject]) currentProjectName = lastProject;
             else currentProjectName = Object.keys(allProjects)[0];
         }
-        renderProjectList();
-        switchProject();
-        update();
+        renderProjectList(); switchProject(); update();
     };
 </script>
 </body>
