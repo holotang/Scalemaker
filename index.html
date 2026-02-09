@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sonata Composer Studio [The Ultimate Master]</title>
+    <title>Sonata Composer Studio [Ultimate Master V2]</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 0; line-height: 1.6; }
         header { background: #1a1a1a; color: white; padding: 1rem; text-align: center; }
@@ -11,27 +11,23 @@
         .section-box { background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         h2 { font-size: 1.1rem; border-left: 4px solid #e63946; padding-left: 10px; margin-bottom: 15px; }
         
-        /* プロジェクト管理 */
         .project-manager { display: flex; gap: 10px; align-items: center; background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 1rem; }
         .project-btn { background: #555; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         
-        /* 楽曲構成プランナー */
-        .timeline-header { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; padding: 10px; font-weight: bold; font-size: 0.8rem; border-bottom: 2px solid #eee; }
-        .timeline-item { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
+        /* 楽曲構成プランナーのヘッダー */
+        .timeline-header { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; padding: 10px; font-weight: bold; font-size: 0.8rem; background: #eee; border-radius: 6px 6px 0 0; border-bottom: 2px solid #ddd; }
+        .timeline-item { display: grid; grid-template-columns: 80px 80px 150px 180px 1fr 80px 40px; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 0; border-bottom: 1px solid #ddd; }
         .timeline-item input, .timeline-item select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.9rem; width: 100%; }
         .total-info { background: #e63946; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; display: inline-block; margin-top: 10px; }
         
-        /* 音名セレクター */
         .converter-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
-        .converter-input select { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        .converter-input label { display: block; font-size: 0.7rem; color: #666; text-align: center; margin-bottom: 5px; }
 
-        /* テーブル */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; font-size: 0.85rem; }
         th { background: #333; color: white; padding: 10px; text-align: left; }
         td { padding: 8px 10px; border-bottom: 1px solid #eee; }
         .notes-text { font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.1rem; }
         
-        /* 色・マーク */
         .in-scale { color: #2a9d8f; } 
         .out-scale { color: #f4a261; opacity: 0.7; } 
         .group-mark { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #fff; color: #333; border: 2px solid #333; font-weight: bold; font-size: 0.75rem; margin-right: 8px; vertical-align: middle; }
@@ -55,6 +51,9 @@
 
     <div class="section-box">
         <h2>楽曲構成 & 演奏時間設計</h2>
+        <div class="timeline-header">
+            <div>小節数</div><div>BPM</div><div>セクション名</div><div>使用スケール</div><div>メモ</div><div>時間</div><div></div>
+        </div>
         <div id="timeline"></div>
         <button class="add-btn" onclick="addTimelineRow(); saveToLocal();">＋ セクションを追加</button>
         <br>
@@ -67,7 +66,7 @@
     </div>
 
     <div class="section-box">
-        <h2>旋法マトリックス (全31スケール完全版)</h2>
+        <h2>旋法マトリックス (全31スケール)</h2>
         <div style="margin-bottom:15px;"><label>Root Key: <select id="keySelect" onchange="update()"></select></label></div>
         <table>
             <thead>
@@ -89,9 +88,7 @@
     const notesSharp = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     const notesFlat  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
     const majorScaleNotes = ["C", "D", "E", "F", "G", "A", "B", "C(oct)"];
-    function n(name) { const idx = notesFlat.indexOf(name); return idx !== -1 ? idx : notesSharp.indexOf(name); }
 
-    // 全31種類のスケールを完全復元（理論的度数配置）
     const scales = [
         { n: 5, id: "ryukyu", name: "琉球音階", intervals: [0, null, 4, 5, 7, null, 11], img: "沖縄/太陽", pref: "sharp" },
         { n: 5, id: "ritsu", name: "律旋法", intervals: [0, 2, null, 5, 7, 9, null], img: "雅楽/静謐", pref: "sharp" },
@@ -111,15 +108,15 @@
         { n: 7, id: "locrian", name: "ロクリアン", intervals: [0, 1, 3, 5, 6, 8, 10], img: "崩壊", pref: "flat" },
         { n: 7, id: "phrygian_dom", name: "フリジアンDom", intervals: [0, 1, 4, 5, 7, 8, 10], img: "エジプト", pref: "flat" },
         { n: 7, id: "double_har", name: "ダブルハーモニック", intervals: [0, 1, 4, 5, 7, 8, 11], img: "インド/宗教", pref: "flat" },
-        { n: 7, id: "hungary", name: "ハンガリー短", intervals: [0, 2, 3, 6, 7, 8, 11], img: "東欧/狂気", pref: "sharp" },
+        { n: 7, id: "hungary", name: "ハンガリー短", intervals: [0, 2, 3, 6, 7, 8, 11], img: "狂気", pref: "sharp" },
         { n: 7, id: "lydian_aug", name: "リディアンAug", intervals: [0, 2, 4, 6, 8, 9, 11], img: "宇宙的", pref: "sharp" },
         { n: 7, id: "lydian_dom", name: "リディアンDom", intervals: [0, 2, 4, 6, 7, 9, 10], img: "モダン", pref: "flat" },
         { n: 7, id: "ultra_loc", name: "ウルトラロクリアン", intervals: [0, 1, 3, 4, 6, 8, 9], img: "深淵", pref: "flat" },
         { n: 8, id: "dim_hw", name: "半全ディミ", intervals: [0, 1, 3, 4, 6, 7, 9, 10], img: "メシアン2", pref: "flat" },
-        { n: 8, id: "dim_wh", name: "全半ディミ", intervals: [0, 2, 3, 5, 6, 8, 9, 11], img: "現代/硬質", pref: "sharp" },
+        { n: 8, id: "dim_wh", name: "全半ディミ", intervals: [0, 2, 3, 5, 6, 8, 9, 11], img: "現代", pref: "sharp" },
         { n: 8, id: "bebop_dom", name: "ビバップDom", intervals: [0, 2, 4, 5, 7, 9, 10, 11], img: "Jazz", pref: "flat" },
         { n: 8, id: "bebop_maj", name: "ビバップMaj", intervals: [0, 2, 4, 5, 7, 8, 9, 11], img: "Jazz", pref: "sharp" },
-        { n: 8, id: "spanish_8", name: "スパニッシュ8", intervals: [0, 1, 3, 4, 5, 6, 8, 10], img: "スペイン/情念", pref: "flat" },
+        { n: 8, id: "spanish_8", name: "スパニッシュ8", intervals: [0, 1, 3, 4, 5, 6, 8, 10], img: "スペイン", pref: "flat" },
         { n: 9, id: "messiaen3", name: "メシアン第3", intervals: [0, 2, 3, 4, 6, 7, 8, 10, 11], img: "極彩色", pref: "sharp" },
         { n: 10, id: "messiaen7", name: "メシアン第7", intervals: [0, 1, 2, 3, 5, 6, 7, 8, 9, 11], img: "カオス", pref: "sharp" },
         { n: 11, id: "scale11", name: "11音旋法", intervals: [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11], img: "飽和", pref: "sharp" },
@@ -131,7 +128,7 @@
 
     const inputGrid = document.getElementById('inputGrid');
     for(let i=1; i<=8; i++) {
-        inputGrid.innerHTML += `<div class="converter-input"><label>${i}</label><select class="deg-in" onchange="update()"><option value="-1">-</option>${majorScaleNotes.map((name,idx)=>`<option value="${idx}">${name}</option>`).join('')}</select></div>`;
+        inputGrid.innerHTML += `<div class="converter-input"><label>${i}番目(C=1)</label><select class="deg-in" onchange="update()"><option value="-1">-</option>${majorScaleNotes.map((name,idx)=>`<option value="${idx}">${name}</option>`).join('')}</select></div>`;
     }
 
     function calculateTotal() {
@@ -153,7 +150,7 @@
             data.push({ bars: item.querySelector('.input-bars').value, bpm: item.querySelector('.input-bpm').value, secName: item.querySelector('.input-sec').value, scale: item.querySelector('.select-scale').value, memo: item.querySelector('.input-memo').value });
         });
         allProjects[currentProjectName] = data;
-        localStorage.setItem('sonataMasterV1', JSON.stringify(allProjects));
+        localStorage.setItem('sonataFinalV1', JSON.stringify(allProjects));
         document.getElementById('saveStatus').innerText = "保存済み " + new Date().toLocaleTimeString();
     }
 
@@ -161,7 +158,14 @@
         const container = document.getElementById('timeline');
         const div = document.createElement('div');
         div.className = 'timeline-item';
-        div.innerHTML = `<input type="number" class="input-bars" value="${bars}" oninput="calculateTotal(); saveToLocal();"> <input type="number" class="input-bpm" value="${bpm}" oninput="calculateTotal(); saveToLocal();"> <input type="text" class="input-sec" value="${secName}" oninput="saveToLocal();"> <select class="select-scale" onchange="saveToLocal();">${scales.map(s => `<option ${s.name===scaleName?'selected':''}>${s.name}</option>`).join('')}</select> <input type="text" class="input-memo" value="${memo}" oninput="saveToLocal();"> <div class="duration-cell">0s</div> <button class="del-btn" onclick="this.parentElement.remove(); calculateTotal(); saveToLocal();">×</button>`;
+        div.innerHTML = `
+            <input type="number" class="input-bars" value="${bars}" oninput="calculateTotal(); saveToLocal();"> 
+            <input type="number" class="input-bpm" value="${bpm}" oninput="calculateTotal(); saveToLocal();"> 
+            <input type="text" class="input-sec" value="${secName}" oninput="saveToLocal();"> 
+            <select class="select-scale" onchange="saveToLocal();">${scales.map(s => `<option ${s.name===scaleName?'selected':''}>${s.name}</option>`).join('')}</select> 
+            <input type="text" class="input-memo" value="${memo}" oninput="saveToLocal();"> 
+            <div class="duration-cell">0s</div> 
+            <button class="del-btn" onclick="this.parentElement.remove(); calculateTotal(); saveToLocal();">×</button>`;
         container.appendChild(div); calculateTotal();
     }
 
@@ -173,13 +177,11 @@
         const tbody = document.getElementById('tableBody');
         const degInputs = Array.from(document.querySelectorAll('.deg-in')).map(s => parseInt(s.value));
         const isFlat = [1, 3, 5, 8, 10].includes(shift);
-        
         const resultsMap = {};
         const scaleCalculations = [];
 
         scales.forEach(s => {
             const noteList = (s.pref === "flat") || (isFlat && s.pref !== "sharp") ? notesFlat : notesSharp;
-            
             const convertedRaw = degInputs.filter(v => v !== -1).map(v => {
                 const targetInterval = s.intervals[v % s.intervals.length];
                 const finalIdx = targetInterval === null ? ([0, 2, 4, 5, 7, 9, 11][v % 7]) : targetInterval;
@@ -207,11 +209,9 @@
             scaleCalculations.push({ s, convertedHTML, melodyStr, scaleNotes, chordNotes });
         });
 
-        const groupSymbols = {};
-        const groupColors = {};
         const symbols = "ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
         const colors = ["rgba(42,157,143,0.15)", "rgba(230,57,70,0.1)", "rgba(69,123,157,0.15)", "rgba(244,162,97,0.15)", "rgba(142,68,173,0.1)", "rgba(39,174,96,0.1)"];
-        let symIdx = 0;
+        const groupSymbols = {}; const groupColors = {}; let symIdx = 0;
         Object.keys(resultsMap).forEach(key => {
             if (resultsMap[key].length > 1 && key !== "") {
                 groupSymbols[key] = symbols[symIdx % symbols.length];
@@ -248,7 +248,7 @@
     }
 
     window.onload = () => {
-        const saved = localStorage.getItem('sonataMasterV1');
+        const saved = localStorage.getItem('sonataFinalV1');
         if (saved) allProjects = JSON.parse(saved);
         renderProjectList(); switchProject(); update();
     };
